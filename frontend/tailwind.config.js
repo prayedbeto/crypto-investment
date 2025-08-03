@@ -22,6 +22,10 @@ export default {
         crypto: {
           bitcoin: '#f7931a',
           ethereum: '#627eea',
+          binance: '#f3ba2f',
+          cardano: '#0033ad',
+          solana: '#14f195',
+          polkadot: '#e6007a',
           success: '#10b981',
           danger: '#ef4444',
           warning: '#f59e0b',

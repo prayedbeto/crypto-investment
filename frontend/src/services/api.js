@@ -14,4 +14,25 @@ export const healthService = {
   check: () => api.get('/health'),
 };
 
+// Servicio de criptomonedas
+export const cryptocurrencyService = {
+  getAll: () => api.get('/cryptocurrencies'),
+  getById: (id) => api.get(`/cryptocurrencies/${id}`),
+};
+
+// Servicio de precios históricos
+export const historicalPriceService = {
+  getPrices: (ids) => {
+    if (!ids || ids.trim() === '') {
+      return Promise.reject(new Error('IDs de criptomonedas requeridos'));
+    }
+    return api.get(`/historical/prices?ids=${ids}`);
+  },
+};
+
+// Servicio de estadísticas del mercado
+export const marketStatsService = {
+  getMarketStats: () => api.get('/prices/market-stats'),
+};
+
 export default api; 
