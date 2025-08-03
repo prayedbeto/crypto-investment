@@ -3,6 +3,9 @@ const cors = require('cors');
 require('dotenv').config();
 
 const healthRoutes = require('./routes/health');
+const cryptocurrencyRoutes = require('./routes/cryptocurrencies');
+const priceRoutes = require('./routes/prices');
+const historicalRoutes = require('./routes/historical');
 
 const app = express();
 
@@ -17,6 +20,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Rutas
 app.use('/api/health', healthRoutes);
+app.use('/api/cryptocurrencies', cryptocurrencyRoutes);
+app.use('/api/prices', priceRoutes);
+app.use('/api/historical', historicalRoutes);
 
 // Ruta raíz
 app.get('/', (req, res) => {
@@ -24,7 +30,10 @@ app.get('/', (req, res) => {
     message: 'Crypto Investment API',
     version: '1.0.0',
     endpoints: {
-      health: '/api/health'
+      health: '/api/health',
+      cryptocurrencies: '/api/cryptocurrencies',
+      prices: '/api/prices',
+      historical: '/api/historical'
     }
   });
 });
@@ -45,9 +54,18 @@ app.use('*', (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 
-app.listen(PORT, () => {
+// Iniciar el servicio de actualización automática de precios
+const priceUpdateService = require('./services/priceUpdateService');
+
+app.listen(PORT, async () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
   console.log(`Ambiente: ${process.env.NODE_ENV}`);
+  
+  // Iniciar actualización automática de precios cada minuto
+  if (process.env.AUTO_UPDATE_PRICES === 'true') {
+    console.log('🔄 Iniciando servicio de actualización automática de precios...');
+    priceUpdateService.startAutoUpdate(1); // Cada minuto
+  }
 });
 
 module.exports = app;
