@@ -1,0 +1,223 @@
+{
+	"info": {
+		"_postman_id": "cf288168-affa-4c3b-9cae-79521e4af3b9",
+		"name": "CoinMarketCap - NodeJs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "2326757"
+	},
+	"item": [
+		{
+			"name": "Cryptos",
+			"item": [
+				{
+					"name": "Cryptos Get All",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/api/cryptocurrencies?search=bitcoin",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"api",
+								"cryptocurrencies"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "bitcoin"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cryptos Get Prices",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/api/prices/crypto/1",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"api",
+								"prices",
+								"crypto",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cryptos Graph Data",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/api/historical/prices?ids=1,18,88,23,66,52",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"api",
+								"historical",
+								"prices"
+							],
+							"query": [
+								{
+									"key": "ids",
+									"value": "1,18,88,23,66,52"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Market Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/api/prices/market-stats",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"api",
+								"prices",
+								"market-stats"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cryptos Fetch",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/api/cryptocurrencies/fetch",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"api",
+								"cryptocurrencies",
+								"fetch"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cryptos Historical Date Filter",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/api/historical/prices?ids=1,18,88&start_date=2025-07-25&end_date=2025-08-01",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"api",
+								"historical",
+								"prices"
+							],
+							"query": [
+								{
+									"key": "ids",
+									"value": "1,18,88"
+								},
+								{
+									"key": "start_date",
+									"value": "2025-07-25"
+								},
+								{
+									"key": "end_date",
+									"value": "2025-08-01"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl \"http://localhost:3001/api/historical/prices?ids=1,18,88&start_date=2025-07-25&end_date=2025-08-01\""
+					},
+					"response": []
+				},
+				{
+					"name": "Cryptos Historical Date Filter Copy",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/api/historical/start-update",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"api",
+								"historical",
+								"start-update"
+							]
+						},
+						"description": "Generated from cURL: curl \"http://localhost:3001/api/historical/prices?ids=1,18,88&start_date=2025-07-25&end_date=2025-08-01\""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "API Health",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/api/health",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"api",
+						"health"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "API_URL",
+			"value": "http://localhost:3001",
+			"type": "string"
+		}
+	]
+}

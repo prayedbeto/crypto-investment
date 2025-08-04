@@ -2,6 +2,13 @@
 
 Una plataforma para inversión en criptomonedas con backend en Express y frontend en React/Vite/Tailwind CSS.
 
+Demo:
+https://cheery-pixie-22c90a.netlify.app/
+
+## Video
+
+https://www.loom.com/share/158da362a7464eeea2c0bd226bb168da?sid=00df6407-1b57-42c0-9d2d-ae38b58d3a68
+
 ## 🚀 Estructura del Proyecto
 
 ```
