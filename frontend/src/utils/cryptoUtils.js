@@ -48,18 +48,33 @@ export const formatPrice = (price) => {
  * Calcula el cambio porcentual entre dos precios
  * @param {string|number} currentPrice - Precio actual
  * @param {string|number} previousPrice - Precio anterior
- * @returns {string} Cambio porcentual formateado
+ * @returns {object} Objeto con percentage y absolute
  */
 export const calculatePriceChange = (currentPrice, previousPrice) => {
-  if (!currentPrice || !previousPrice) return '0.00';
+  if (!currentPrice || !previousPrice) {
+    return {
+      percentage: 0,
+      absolute: 0
+    };
+  }
   
   const current = parseFloat(currentPrice);
   const previous = parseFloat(previousPrice);
   
-  if (previous === 0) return '0.00';
+  if (previous === 0) {
+    return {
+      percentage: 0,
+      absolute: 0
+    };
+  }
   
-  const change = ((current - previous) / previous) * 100;
-  return change.toFixed(2);
+  const absolute = current - previous;
+  const percentage = (absolute / previous) * 100;
+  
+  return {
+    percentage: percentage,
+    absolute: absolute
+  };
 };
 
 /**
@@ -92,6 +107,38 @@ export const getCryptoColor = (symbol) => {
   };
   
   return colors[symbol] || 'bg-gray-500';
+};
+
+/**
+ * Obtiene el color hexadecimal para el gráfico de una criptomoneda
+ * @param {string} symbol - Símbolo de la criptomoneda
+ * @returns {string} Color hexadecimal
+ */
+export const getCryptoChartColor = (symbol) => {
+  const colors = {
+    'BTC': '#f7931a',
+    'ETH': '#627eea',
+    'BNB': '#f3ba2f',
+    'ADA': '#0033ad',
+    'SOL': '#14f195',
+    'DOT': '#e6007a',
+    'XRP': '#000000',
+    'MATIC': '#8247e5',
+    'LINK': '#2a5ada',
+    'UNI': '#ff007a',
+    'AVAX': '#e84142',
+    'ATOM': '#2e3148',
+    'LTC': '#a6a9aa',
+    'BCH': '#0ac18e',
+    'XLM': '#000000',
+    'ALGO': '#000000',
+    'VET': '#15bdff',
+    'ICP': '#ff6f01',
+    'FIL': '#0090ff',
+    'TRX': '#ff060a'
+  };
+  
+  return colors[symbol] || '#6b7280';
 };
 
 /**

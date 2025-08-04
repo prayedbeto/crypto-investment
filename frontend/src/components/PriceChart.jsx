@@ -10,27 +10,38 @@ import {
   ResponsiveContainer 
 } from 'recharts';
 import { historicalPriceService } from '../services/api';
-import { formatPrice, getCryptoColor } from '../utils/cryptoUtils';
+import { formatPrice, getCryptoChartColor } from '../utils/cryptoUtils';
 
-export default function PriceChart({ autoUpdate = false, cryptoIds = '1,18,88,23,66,52' }) {
+export default function PriceChart({ autoUpdate = false, selectedCryptos = [], onPricesDataChange }) {
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedCryptos, setSelectedCryptos] = useState([]);
+  const [pricesData, setPricesData] = useState({});
+
+  // Convertir las criptomonedas seleccionadas a IDs
+  const cryptoIds = selectedCryptos.map(crypto => crypto.id).join(',');
 
   useEffect(() => {
-    if (cryptoIds && cryptoIds.trim() !== '') {
+    if (selectedCryptos.length > 0) {
       loadChartData();
+    } else {
+      setChartData([]);
+      setPricesData({});
+      setLoading(false);
+      setError(null);
     }
-  }, [cryptoIds]);
+  }, [selectedCryptos]);
 
   useEffect(() => {
     let interval;
+    
+    // Configurar intervalo local para actualizar datos del gráfico
     if (autoUpdate) {
       interval = setInterval(() => {
         loadChartData();
-      }, 60000); // Actualizar cada 30 segundos
+      }, 60000); // Actualizar cada 60 segundos
     }
+    
     return () => {
       if (interval) {
         clearInterval(interval);
@@ -42,25 +53,27 @@ export default function PriceChart({ autoUpdate = false, cryptoIds = '1,18,88,23
     try {
       setLoading(true);
       
-      // Validar que tengamos IDs válidos
-      if (!cryptoIds || cryptoIds.trim() === '') {
-        setError('No hay IDs de criptomonedas disponibles');
+      // Validar que tengamos criptomonedas seleccionadas
+      if (selectedCryptos.length === 0) {
+        setError('No hay criptomonedas seleccionadas');
         setLoading(false);
         return;
       }
 
       const response = await historicalPriceService.getPrices(cryptoIds);
-      const pricesData = response.data.data;
+      const responseData = response.data.data;
+      
+      // Guardar los datos de precios para pasarlos al componente padre
+      setPricesData(responseData);
+      
+      // Notificar al componente padre sobre los datos de precios
+      if (onPricesDataChange) {
+        onPricesDataChange(responseData);
+      }
       
       // Procesar los datos para el formato requerido por Recharts
-      const processedData = processChartData(pricesData);
+      const processedData = processChartData(responseData);
       setChartData(processedData);
-      
-      // Actualizar las criptomonedas seleccionadas basadas en los datos recibidos
-      const availableCryptos = Object.values(pricesData)
-        .filter(cryptoData => cryptoData.cryptocurrency)
-        .map(cryptoData => cryptoData.cryptocurrency.symbol);
-      setSelectedCryptos(availableCryptos);
     } catch (error) {
       console.error('Error loading chart data:', error);
       setError('Error al cargar los datos de la gráfica');
@@ -71,18 +84,17 @@ export default function PriceChart({ autoUpdate = false, cryptoIds = '1,18,88,23
 
   const processChartData = (pricesData) => {
     const chartData = [];
-    // Mapeo dinámico basado en los datos recibidos
+    
+    // Crear un mapeo de ID a símbolo usando selectedCryptos
     const cryptoMap = {};
-    Object.entries(pricesData).forEach(([cryptoId, cryptoData]) => {
-      if (cryptoData.cryptocurrency) {
-        cryptoMap[cryptoId] = cryptoData.cryptocurrency.symbol;
-      }
+    selectedCryptos.forEach(crypto => {
+      cryptoMap[crypto.id] = crypto.symbol;
     });
 
     // Obtener todos los timestamps únicos
     const allTimestamps = new Set();
     Object.values(pricesData).forEach(cryptoData => {
-      if (cryptoData.prices) {
+      if (cryptoData.prices && Array.isArray(cryptoData.prices)) {
         cryptoData.prices.forEach(price => {
           allTimestamps.add(price.recorded_at);
         });
@@ -108,17 +120,17 @@ export default function PriceChart({ autoUpdate = false, cryptoIds = '1,18,88,23
         })
       };
 
-      // Agregar precio para cada criptomoneda en este timestamp
-      Object.entries(pricesData).forEach(([cryptoId, cryptoData]) => {
-        const symbol = cryptoMap[cryptoId];
-        if (symbol && cryptoData.prices) {
+      // Agregar precio para cada criptomoneda seleccionada en este timestamp
+      selectedCryptos.forEach(crypto => {
+        const cryptoData = pricesData[crypto.id];
+        if (cryptoData && cryptoData.prices && Array.isArray(cryptoData.prices)) {
           // Buscar el precio más cercano a este timestamp
           const priceEntry = cryptoData.prices.find(price => 
             new Date(price.recorded_at).getTime() === timestamp.getTime()
           );
           
           if (priceEntry) {
-            dataPoint[symbol] = parseFloat(priceEntry.price);
+            dataPoint[crypto.symbol] = parseFloat(priceEntry.price);
           }
         }
       });
@@ -190,6 +202,19 @@ export default function PriceChart({ autoUpdate = false, cryptoIds = '1,18,88,23
     );
   }
 
+  if (selectedCryptos.length === 0) {
+    return (
+      <div className="card">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">
+          Variación de Precios
+        </h3>
+        <div className="text-center py-8 text-gray-500">
+          <p>Selecciona criptomonedas para ver la gráfica</p>
+        </div>
+      </div>
+    );
+  }
+
   if (chartData.length === 0) {
     return (
       <div className="card">
@@ -249,10 +274,10 @@ export default function PriceChart({ autoUpdate = false, cryptoIds = '1,18,88,23
             
             {selectedCryptos.map((crypto, index) => (
               <Line
-                key={crypto}
+                key={crypto.id}
                 type="monotone"
-                dataKey={crypto}
-                stroke={colors[crypto] || '#6b7280'}
+                dataKey={crypto.symbol}
+                stroke={getCryptoChartColor(crypto.symbol)}
                 strokeWidth={2}
                 dot={false}
                 activeDot={{ r: 4, strokeWidth: 2 }}

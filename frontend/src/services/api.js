@@ -18,6 +18,7 @@ export const healthService = {
 export const cryptocurrencyService = {
   getAll: () => api.get('/cryptocurrencies'),
   getById: (id) => api.get(`/cryptocurrencies/${id}`),
+  search: (searchTerm) => api.get(`/cryptocurrencies?search=${encodeURIComponent(searchTerm)}`),
 };
 
 // Servicio de precios históricos
@@ -28,6 +29,8 @@ export const historicalPriceService = {
     }
     return api.get(`/historical/prices?ids=${ids}`);
   },
+  startUpdate: () => api.post('/historical/start-update'),
+  stopUpdate: () => api.post('/historical/stop-update'),
 };
 
 // Servicio de estadísticas del mercado

@@ -6,7 +6,7 @@ const { Op } = require('sequelize');
 const getHistoricalPrices = async (req, res) => {
   try {
     const { id } = req.params;
-    const { days = 7, interval = '1h' } = req.query;
+    const { days = 7, interval = '1h', start_date, end_date } = req.query;
 
     // Validar que la criptomoneda existe
     const crypto = await Cryptocurrency.findByPk(id);
@@ -17,16 +17,70 @@ const getHistoricalPrices = async (req, res) => {
       });
     }
 
-    // Calcular fecha de inicio
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - parseInt(days));
+    // Construir filtro de fecha
+    let dateFilter = {};
+    
+    if (start_date && end_date) {
+      // Si se proporcionan ambas fechas, usar el rango específico
+      const startDate = new Date(start_date);
+      const endDate = new Date(end_date);
+      
+      // Validar que las fechas sean válidas
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return res.status(400).json({
+          success: false,
+          message: 'Formato de fecha inválido. Use YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss'
+        });
+      }
+      
+      // Validar que la fecha de inicio sea anterior a la fecha de fin
+      if (startDate >= endDate) {
+        return res.status(400).json({
+          success: false,
+          message: 'La fecha de inicio debe ser anterior a la fecha de fin'
+        });
+      }
+      
+      dateFilter = {
+        [Op.between]: [startDate, endDate]
+      };
+    } else if (start_date) {
+      // Solo fecha de inicio
+      const startDate = new Date(start_date);
+      if (isNaN(startDate.getTime())) {
+        return res.status(400).json({
+          success: false,
+          message: 'Formato de fecha de inicio inválido. Use YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss'
+        });
+      }
+      dateFilter = {
+        [Op.gte]: startDate
+      };
+    } else if (end_date) {
+      // Solo fecha de fin
+      const endDate = new Date(end_date);
+      if (isNaN(endDate.getTime())) {
+        return res.status(400).json({
+          success: false,
+          message: 'Formato de fecha de fin inválido. Use YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss'
+        });
+      }
+      dateFilter = {
+        [Op.lte]: endDate
+      };
+    } else {
+      // Usar el parámetro days por defecto
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - parseInt(days));
+      dateFilter = {
+        [Op.gte]: startDate
+      };
+    }
 
     // Construir consulta base
     let whereClause = {
       cryptocurrency_id: id,
-      recorded_at: {
-        [Op.gte]: startDate
-      }
+      recorded_at: dateFilter
     };
 
     // Aplicar filtro por intervalo si se especifica
@@ -53,6 +107,18 @@ const getHistoricalPrices = async (req, res) => {
       order: orderClause
     });
 
+    // Determinar el período para la respuesta
+    let periodDescription = '';
+    if (start_date && end_date) {
+      periodDescription = `Desde ${start_date} hasta ${end_date}`;
+    } else if (start_date) {
+      periodDescription = `Desde ${start_date}`;
+    } else if (end_date) {
+      periodDescription = `Hasta ${end_date}`;
+    } else {
+      periodDescription = `Últimos ${days} días`;
+    }
+
     res.json({
       success: true,
       data: {
@@ -63,8 +129,13 @@ const getHistoricalPrices = async (req, res) => {
         },
         historical_prices: historicalData,
         count: historicalData.length,
-        period: `${days} días`,
-        interval: interval
+        period: periodDescription,
+        interval: interval,
+        filters: {
+          start_date: start_date || null,
+          end_date: end_date || null,
+          days: start_date || end_date ? null : parseInt(days)
+        }
       }
     });
   } catch (error) {
@@ -80,8 +151,7 @@ const getHistoricalPrices = async (req, res) => {
 // Obtener datos históricos de precios para múltiples criptomonedas
 const getMultipleHistoricalPrices = async (req, res) => {
   try {
-    const { ids } = req.query;
-    const { days = 7 } = req.query;
+    const { ids, days = 7, start_date, end_date } = req.query;
 
     if (!ids) {
       return res.status(400).json({
@@ -92,18 +162,72 @@ const getMultipleHistoricalPrices = async (req, res) => {
 
     const cryptoIds = ids.split(',').map(id => parseInt(id.trim()));
     
-    // Calcular fecha de inicio
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - parseInt(days));
+    // Construir filtro de fecha
+    let dateFilter = {};
+    
+    if (start_date && end_date) {
+      // Si se proporcionan ambas fechas, usar el rango específico
+      const startDate = new Date(start_date);
+      const endDate = new Date(end_date);
+      
+      // Validar que las fechas sean válidas
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return res.status(400).json({
+          success: false,
+          message: 'Formato de fecha inválido. Use YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss'
+        });
+      }
+      
+      // Validar que la fecha de inicio sea anterior a la fecha de fin
+      if (startDate >= endDate) {
+        return res.status(400).json({
+          success: false,
+          message: 'La fecha de inicio debe ser anterior a la fecha de fin'
+        });
+      }
+      
+      dateFilter = {
+        [Op.between]: [startDate, endDate]
+      };
+    } else if (start_date) {
+      // Solo fecha de inicio
+      const startDate = new Date(start_date);
+      if (isNaN(startDate.getTime())) {
+        return res.status(400).json({
+          success: false,
+          message: 'Formato de fecha de inicio inválido. Use YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss'
+        });
+      }
+      dateFilter = {
+        [Op.gte]: startDate
+      };
+    } else if (end_date) {
+      // Solo fecha de fin
+      const endDate = new Date(end_date);
+      if (isNaN(endDate.getTime())) {
+        return res.status(400).json({
+          success: false,
+          message: 'Formato de fecha de fin inválido. Use YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss'
+        });
+      }
+      dateFilter = {
+        [Op.lte]: endDate
+      };
+    } else {
+      // Usar el parámetro days por defecto
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - parseInt(days));
+      dateFilter = {
+        [Op.gte]: startDate
+      };
+    }
 
     const historicalData = await CryptocurrencyPrice.findAll({
       where: {
         cryptocurrency_id: {
           [Op.in]: cryptoIds
         },
-        recorded_at: {
-          [Op.gte]: startDate
-        }
+        recorded_at: dateFilter
       },
       include: [{
         model: Cryptocurrency,
@@ -131,11 +255,29 @@ const getMultipleHistoricalPrices = async (req, res) => {
       });
     });
 
+    // Determinar el período para la respuesta
+    let periodDescription = '';
+    if (start_date && end_date) {
+      periodDescription = `Desde ${start_date} hasta ${end_date}`;
+    } else if (start_date) {
+      periodDescription = `Desde ${start_date}`;
+    } else if (end_date) {
+      periodDescription = `Hasta ${end_date}`;
+    } else {
+      periodDescription = `Últimos ${days} días`;
+    }
+
     res.json({
       success: true,
       data: groupedData,
       count: Object.keys(groupedData).length,
-      period: `${days} días`
+      period: periodDescription,
+      filters: {
+        ids: cryptoIds,
+        start_date: start_date || null,
+        end_date: end_date || null,
+        days: start_date || end_date ? null : parseInt(days)
+      }
     });
   } catch (error) {
     console.error('Error al obtener datos históricos múltiples:', error);

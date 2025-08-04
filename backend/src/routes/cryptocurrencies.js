@@ -7,11 +7,15 @@ const {
   getActiveCryptocurrencies,
   fetchAndSaveCryptocurrencies,
   getCryptocurrencyMetadata,
-  getAllCryptocurrenciesWithMetadata
+  getAllCryptocurrenciesWithMetadata,
+  searchCryptocurrencies
 } = require('../controllers/cryptocurrencyController');
 
-// Obtener todas las criptomonedas
+// Obtener todas las criptomonedas (con búsqueda opcional)
 router.get('/', getAllCryptocurrencies);
+
+// Buscar criptomonedas con filtros avanzados
+router.get('/search', searchCryptocurrencies);
 
 // Obtener criptomonedas activas
 router.get('/active', getActiveCryptocurrencies);
